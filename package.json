@@ -1,0 +1,40 @@
+{
+  "name": "parser-test",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "codemirror": "^5.65.16",
+    "codemirror-editor-vue3": "^2.7.0",
+    "node-sql-parser": "^5.2.0",
+    "pgsql-ast-parser": "^12.0.1",
+    "pug": "^3.0.3",
+    "source-map-support": "^0.5.21",
+    "sql-formatter": "^15.3.2",
+    "vue": "^3.4.31",
+    "vue-router": "^4.4.0",
+    "vue3-json-component": "^0.4.2",
+    "vue3-json-viewer": "^2.2.2",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/codemirror": "^5.60.15",
+    "@types/node": "^20.14.9",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/language-plugin-pug": "^2.0.24",
+    "eslint": "^9.6.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.3.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.2",
+    "vue-tsc": "^2.0.24"
+  }
+}
