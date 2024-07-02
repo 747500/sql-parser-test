@@ -133,7 +133,7 @@ div.top.container
   div(style="text-align: center") SQLify + Formatter
 
 div.content.container
-  div
+  div(style="overflow: hidden;")
     Codemirror(
         v-model:value="msgLeft"
         :options="cmOptions"
@@ -173,7 +173,7 @@ div.content.container
 }
 
 .content.container {
-  height: 87vh;
+  height: 85vh;
 }
 
 .container > div {
