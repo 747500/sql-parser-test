@@ -81,20 +81,6 @@ function onChange(data: string, force?: boolean) {
           pi.makeIt(data);
         }
       }
-
-      // switch (parserType.value) {
-      //   case 'node-sql-parser':
-      //     const parser = new Parser()
-      //     ast.value = parser.astify(data, { database: 'postgresql'});
-      //     msgRight.value = parser.sqlify(ast.value, { database: 'postgresql'});
-      //     break;
-
-      //   case 'pgsql-ast-parser':
-      //     ast.value = parse(data);
-      //     msgRight.value = ast.value.map((stmnt) => toSql.statement(stmnt)).reduce((prev, curr) => prev + curr, '');
-      //     break;
-      // }
-
       msgErr.value = undefined;
     } catch (e: any) {
       msgErr.value = e.toString();
