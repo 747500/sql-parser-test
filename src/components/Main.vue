@@ -23,14 +23,14 @@ const parserList: ParserInfoItem[] = [
   makeIt: (data: string) => {
     const parser = new Parser()
     ast.value = parser.astify(data, { database: 'postgresql'});
-    msgRight.value = parser.sqlify(ast.value, { database: 'postgresql'});  
+    msgRight.value = parser.sqlify(ast.value, { database: 'postgresql'});
   }
 },
 {
   id: 'pgsql-ast-parser',
   makeIt: (data: string) => {
     ast.value = parse(data);
-    msgRight.value = ast.value.map((stmnt) => toSql.statement(stmnt)).reduce((prev, curr) => prev + curr, '');
+    msgRight.value = ast.value.map((stmnt) => toSql.statement(stmnt)).reduce((prev, curr) => `${prev}${curr}; `, '');
   }
 },
 ];
@@ -127,7 +127,7 @@ div.content.container
         placeholder="test placeholder"
         @change="onChange"
     )
-  div
+  div(style="background-color: rgb(40, 44, 52)")
     JsonViewer(
       v-show="!msgErr"
       :value="ast || {}"
@@ -145,7 +145,7 @@ div.content.container
 
 .container {
   display: flex;
-  width: 95vw;
+  width: 100%;
 }
 
 .top.container {
@@ -184,6 +184,7 @@ label:hover {
 
 .jv-container {
   font-size: 12px;
+  /* height: 100%; */
   /* padding: 0; */
 }
 

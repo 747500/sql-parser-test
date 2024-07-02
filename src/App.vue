@@ -41,7 +41,6 @@ div.bottom {
 }
 
 a.github  {
-  display: block;
   line-height: 14px;
 }
 
