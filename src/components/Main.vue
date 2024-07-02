@@ -110,7 +110,7 @@ function onChange(data: string, force?: boolean) {
 
 }
 
-function onParserChange(ev: Event, pi: ParserInfoItem) {
+function onParserChange(pi: ParserInfoItem) {
   parserType.value = pi.id;
   onChange(msgLeft.value, true);
 }
@@ -125,7 +125,7 @@ div.top.container
         input(
           type="radio" name="parserType"
           :id="parserInfo.id"
-          @change="(ev) => onParserChange(ev, parserInfo)"
+          @change="() => onParserChange(parserInfo)"
           checked
         )
         label(:for="parserInfo.id") {{ parserInfo.id }}
