@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Parser, type AST } from 'node-sql-parser';
+import { Parser } from 'node-sql-parser';
 import { parse, toSql, type Statement } from 'pgsql-ast-parser';
 import { format } from 'sql-formatter';
 // import { EditorView } from 'codemirror';
 // import { Facet } from '@codemirror/state';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import 'codemirror/mode/sql/sql';
 
 import { JsonViewer } from 'vue3-json-viewer';
@@ -14,38 +14,62 @@ import "vue3-json-viewer/dist/index.css";
 
 type ParserInfoItem = {
   id: "node-sql-parser" | "pgsql-ast-parser"
-  makeIt: (data: string) => void;
+  makeAst: (data: string) => any;
+  makeText: (data: string) => any;
 };
 
 const parserList: ParserInfoItem[] = [
 {
   id: 'node-sql-parser',
-  makeIt: (data: string) => {
+  makeText: () => {
     const parser = new Parser()
-    ast.value = parser.astify(data, { database: 'postgresql'});
-    msgRight.value = parser.sqlify(ast.value, { database: 'postgresql'});
+    return format(parser.sqlify(msgAst.value, { database: 'postgresql'}), {language: 'postgresql'});
+  },
+  makeAst: (data: string) => {
+    const parser = new Parser()
+    return parser.astify(data, { database: 'postgresql'});
   }
 },
 {
   id: 'pgsql-ast-parser',
-  makeIt: (data: string) => {
-    ast.value = parse(data);
-    msgRight.value = ast.value.map((stmnt) => toSql.statement(stmnt)).reduce((prev, curr) => `${prev}${curr}; `, '');
+  makeText: () => {
+    return msgAst.value
+      .map((stmnt: Statement) => toSql.statement(stmnt))
+      .reduce((prev:string, curr:string) => `${prev}${format(curr, {language: 'postgresql'})}; `, '');
+  },
+  makeAst: (data: string) => {
+    return parse(data);
   }
 },
 ];
 
-const msgLeft = ref<string>('');
-
-setTimeout(() => msgLeft.value = 'SELECT NOW();', 1);
-
-const msgRight = ref<string | undefined>();
-const msgErr = ref<string | undefined>();
-const ast = ref<AST | AST[] | Statement[] | undefined>()
 const parserType = ref<'pgsql-ast-parser' | 'node-sql-parser'>('pgsql-ast-parser');
 
+const msgLeft = ref<string>('SELECT NOW();');
+
+const msgRight = computed(() => {
+  const item = parserList.find((item) => item.id === parserType.value);
+
+  if (!item) {
+    throw new Error(`${parserType.value} was not found`);
+  }
+
+  return item?.makeText(msgAst.value);
+});
+
+const msgAst = computed(() => {
+  const item = parserList.find((item) => item.id === parserType.value);
+
+  if (!item) {
+    throw new Error(`${parserType.value} was not found`);
+  }
+
+  return item.makeAst(msgLeft.value);
+})
+
+const msgErr = ref<string | undefined>();
+
 const cmOptions = ref({
-    // mode: "text/plain",
     mode: "text/x-pgsql",
     theme: 'default',
     lineNumbers: true, // Show line number
@@ -65,42 +89,6 @@ const cmOptions = ref({
 //   combine: values => values.length ? Math.min(...values) : 2
 // })
 
-let changeDelay: NodeJS.Timeout | undefined;
-
-function onChange(data: string, force?: boolean) {
-  if (changeDelay) {
-    clearTimeout(changeDelay);
-  }
-
-  changeDelay = setTimeout(() => {
-    clearTimeout(changeDelay);
-
-    try {
-      for (const pi of parserList) {
-        if (pi.id === parserType.value) {
-          pi.makeIt(data);
-        }
-      }
-      msgErr.value = undefined;
-    } catch (e: any) {
-      msgErr.value = e.toString();
-    }
-
-    try {
-      msgRight.value = format(msgRight.value || '', { language: 'postgresql' });
-    } catch (e) {
-      console.log(e)
-    }
-
-  }, force ? 1 : 1000);
-
-}
-
-function onParserChange(pi: ParserInfoItem) {
-  parserType.value = pi.id;
-  onChange(msgLeft.value, true);
-}
-
 </script>
 
 <template lang="pug">
@@ -109,13 +97,17 @@ div.top.container
     form
       div(v-for="parserInfo in parserList")
         input(
-          type="radio" name="parserType"
+          v-model="parserType"
+          type="radio"
+          name="parserType"
+          :value="parserInfo.id"
           :id="parserInfo.id"
-          @change="() => onParserChange(parserInfo)"
           checked
         )
         label(:for="parserInfo.id") {{ parserInfo.id }}
+
   div(style="text-align: center") AST
+
   div(style="text-align: center") SQLify + Formatter
 
 div.content.container
@@ -125,12 +117,11 @@ div.content.container
         :options="cmOptions"
         border
         placeholder="test placeholder"
-        @change="onChange"
     )
   div(style="background-color: rgb(40, 44, 52)")
     JsonViewer(
       v-show="!msgErr"
-      :value="ast || {}"
+      :value="msgAst || {}"
       theme="dark"
       :expanded="true"
       :expandDepth="10"
