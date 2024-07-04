@@ -35,7 +35,7 @@ const parserList: ParserInfoItem[] = [
   makeText: () => {
     return msgAst.value
       .map((stmnt: Statement) => toSql.statement(stmnt))
-      .reduce((prev:string, curr:string) => `${prev}${format(curr, {language: 'postgresql'})}; `, '');
+      .reduce((prev:string, curr:string) => `${prev}${format(curr, {language: 'postgresql'})};\n`, '');
   },
   makeAst: (data: string) => {
     return parse(data);
