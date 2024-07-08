@@ -13,58 +13,72 @@ import "vue3-json-viewer/dist/index.css";
 // defineProps<{ msg: string }>()
 
 type ParserInfoItem = {
-  id: "node-sql-parser" | "pgsql-ast-parser"
-  makeAst: (data: string) => any;
-  makeText: (data: string) => any;
+  id: string
+  toAst: (data: string) => any;
+  toString: (data: string) => any;
 };
 
 const parserList: ParserInfoItem[] = [
-{
-  id: 'node-sql-parser',
-  makeText: () => {
-    const parser = new Parser()
-    return format(parser.sqlify(msgAst.value, { database: 'postgresql'}), {language: 'postgresql'});
+  {
+    id: 'node-sql-parser',
+    toString: () => {
+      const parser = new Parser()
+      return format(
+        parser.sqlify(
+          msgAst.value,
+          { database: 'postgresql'}
+        ),
+        { language: 'postgresql' }
+      );
+    },
+    toAst: (data: string) => {
+      const parser = new Parser()
+      return parser.astify(
+        data,
+        { database: 'postgresql'}
+      );
+    }
   },
-  makeAst: (data: string) => {
-    const parser = new Parser()
-    return parser.astify(data, { database: 'postgresql'});
-  }
-},
-{
-  id: 'pgsql-ast-parser',
-  makeText: () => {
-    return msgAst.value
-      .map((stmnt: Statement) => toSql.statement(stmnt))
-      .reduce((prev:string, curr:string) => `${prev}${format(curr, {language: 'postgresql'})};\n`, '');
+  {
+    id: 'pgsql-ast-parser',
+    toString: () => {
+      return msgAst.value
+        .map((stmnt: Statement) => format(
+          toSql.statement(stmnt),
+          { language: 'postgresql' }
+        ))
+        .reduce((prev: string, curr: string) => `${prev}${curr};\n`, '');
+    },
+    toAst: (data: string) => {
+      return parse(data);
+    }
   },
-  makeAst: (data: string) => {
-    return parse(data);
-  }
-},
 ];
 
-const parserType = ref<'pgsql-ast-parser' | 'node-sql-parser'>('pgsql-ast-parser');
+typeof parserList
+
+const parserType = ref<typeof parserList[number]['id']>('pgsql-ast-parser');
 
 const msgLeft = ref<string>('SELECT NOW();');
 
 const msgRight = computed(() => {
-  const item = parserList.find((item) => item.id === parserType.value);
+  const parser = parserList.find((item) => item.id === parserType.value);
 
-  if (!item) {
+  if (!parser) {
     throw new Error(`${parserType.value} was not found`);
   }
 
-  return item?.makeText(msgAst.value);
+  return parser.toString(msgAst.value);
 });
 
 const msgAst = computed(() => {
-  const item = parserList.find((item) => item.id === parserType.value);
+  const parser = parserList.find((item) => item.id === parserType.value);
 
-  if (!item) {
+  if (!parser) {
     throw new Error(`${parserType.value} was not found`);
   }
 
-  return item.makeAst(msgLeft.value);
+  return parser.toAst(msgLeft.value);
 })
 
 const msgErr = ref<string | undefined>();
