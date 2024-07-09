@@ -15,7 +15,7 @@ import "vue3-json-viewer/dist/index.css";
 type ParserInfoItem = {
   id: string
   toAst: (data: string) => any;
-  toString: (data: string) => any;
+  toString: () => string;
 };
 
 const parserList: ParserInfoItem[] = [
@@ -41,17 +41,13 @@ const parserList: ParserInfoItem[] = [
   },
   {
     id: 'pgsql-ast-parser',
-    toString: () => {
-      return msgAst.value
+    toString: () => msgAst.value
         .map((stmnt: Statement) => format(
           toSql.statement(stmnt),
           { language: 'postgresql' }
         ))
-        .reduce((prev: string, curr: string) => `${prev}${curr};\n`, '');
-    },
-    toAst: (data: string) => {
-      return parse(data);
-    }
+        .reduce((prev: string, curr: string) => `${prev}${curr};\n`, ''),
+    toAst: (data: string) => parse(data),
   },
 ];
 
@@ -68,7 +64,7 @@ const msgRight = computed(() => {
     throw new Error(`${parserType.value} was not found`);
   }
 
-  return parser.toString(msgAst.value);
+  return parser.toString();
 });
 
 const msgAst = computed(() => {
